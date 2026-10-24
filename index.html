@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Astro Cell Lab – Station Kepler</title><link rel="stylesheet" href="quest.css">
+<style>body{background:radial-gradient(circle at 20% 10%,#1b2b5a,#060818 70%);color:#e8f0ff}.card{background:#ffffff0d;border:1px solid #8fb4ff33}
+button{background:#6366f1;color:#fff}button.alt,.opt,.path{background:#ffffff14;color:#e8f0ff}button.go{background:#22d3ee;color:#022}
+.prog>div{background:linear-gradient(90deg,#6366f1,#22d3ee)}.steps{background:#0006;font-family:ui-monospace,monospace}.eqbox{background:#ffffff12}
+.donep{opacity:.6}svg text{fill:#e8f0ff;font:13px system-ui}svg .o{stroke:#22d3ee;stroke-width:2;fill:none}</style></head>
+<body><div class="wrap"><h1>🔬🚀 Astro Cell Lab</h1><div id="ctl" class="card small"></div><div id="app"></div></div>
+<script src="tracker.js"></script><script src="quest-engine.js"></script><script>
+const MC=o=>Object.assign({type:'mc'},o),NUM=o=>Object.assign({type:'num'},o),STEPS=o=>Object.assign({type:'steps'},o);
+const MOVE=(eq,opts,a,res,why,q)=>({eq,opts,a,res,why,q});
+const VENN=['🌱 Plant only','🐾 Animal only','🌱🐾 Both'];
+const SCOPE=`<svg class="fig" viewBox="0 0 230 210" width="230"><rect class="o" x="60" y="10" width="26" height="40"/><text x="92" y="30">eyepiece</text>
+<line class="o" x1="73" y1="50" x2="73" y2="95"/><rect class="o" x="62" y="95" width="22" height="30"/><text x="92" y="115">objective lenses</text>
+<rect class="o" x="30" y="135" width="120" height="8"/><text x="155" y="143">stage</text><circle class="o" cx="73" cy="158" r="7"/><text x="92" y="162">diaphragm / light</text>
+<path class="o" d="M150 60 Q175 100 150 150"/><circle class="o" cx="160" cy="95" r="9"/><text x="172" y="88">focus knobs</text><rect class="o" x="25" y="185" width="140" height="15"/><text x="170" y="198">base</text></svg>`;
+const CELLS=`<svg class="fig" viewBox="0 0 330 150" width="330"><rect class="o" x="10" y="10" width="140" height="120" rx="4"/><rect class="o" x="16" y="16" width="128" height="108" rx="3"/>
+<rect class="o" x="45" y="40" width="70" height="55" rx="10" stroke-dasharray="4 3"/><circle class="o" cx="30" cy="35" r="8"/><ellipse class="o" cx="125" cy="110" rx="12" ry="6"/>
+<text x="40" y="145">plant cell</text><text x="52" y="72">vacuole</text><ellipse class="o" cx="245" cy="70" rx="70" ry="55"/><circle class="o" cx="245" cy="70" r="16"/><text x="232" y="74">nuc</text>
+<ellipse class="o" cx="205" cy="100" rx="12" ry="6"/><text x="215" y="145">animal cell</text></svg>`;
+QuestEngine.start({game:'astro-cell-lab',defaultPlayer:'Mateo',emoji:'🛰️',unit:'samples',confBonus:true,hintCost:1,studyCard:true,
+title:'Station Kepler: Astrobiology Lab',
+story:'Welcome aboard Station Kepler, Field Scientist. A supply rocket just delivered samples from Earth and from a mysterious ice moon. Your job: master the microscope, compare plant and animal cells, then decide if an alien sample is truly a cell. One sample at a time. Hints are available, but now they cost a little ⭐. Real scientists check their own results!',
+strategy:`<p><b>⭐ Call your result</b> before every check (no default). 😎 Sure + right → +5. 😬 Guessing + not yet → +3 honesty bonus.</p>
+<p><b>💡 Hints cost ⭐ now</b> (1–3 points, shown on the button). Try first. After a miss, the hint is free.</p>
+<p><b>🔍 Check your own result.</b> Some samples ask HOW you'd check your answer. Each good self-check = +3 ⭐.</p>
+<p>At the end you'll make your own <b>study card</b>, the 1–2 things future-you needs to remember for the test.</p>`,
+hubTitle:'🧪 Choose a lab module',hubHint:'One module at a time. Finish all three to complete the mission.',
+studyQ:'Write 1–2 key takeaways in your own words: a fact plus WHY it is true.',studyTip:'Example: “Plant cells have a cell wall because it gives them a stiff shape so the plant can stand up.”',
+paths:[
+{id:'scope',emoji:'🔬',name:'Microscope Lab',desc:'Parts of the microscope, magnification math, why images flip, and focusing order.',doneMsg:'Microscope certified! 🔬',
+strategy:`<p><b>Microscope Protocol</b></p>${SCOPE}<ul>
+<li><b>Eyepiece</b> (ocular lens, usually 10×): where you look. <b>Objective lenses</b> (4×, 10×, 40×): just above the slide.</li>
+<li><b>Stage</b> holds the slide. <b>Diaphragm</b> controls how much light passes through the sample.</li>
+<li><b>Total magnification = eyepiece × objective.</b></li>
+<li><b>Focus order:</b> lowest-power objective → coarse knob → fine knob → THEN switch to higher power and use only the fine knob.</li>
+<li>Lenses make the image look <b>upside down and backwards</b>, so move the slide the opposite way to move the image.</li></ul>`,
+items:[
+MC({id:'m1',skill:'microscope-parts',label:'Sample 1',hintCost:1,q:'The image of your sample looks too dark. Which part controls how much light passes through the sample?',opts:['Diaphragm','Eyepiece','Stage clips','Arm'],a:0,h:'Look at the bottom of the microscope diagram on the protocol card (📇).',s:'The diaphragm opens and closes to let more or less light through the sample.'}),
+NUM({id:'m2',skill:'magnification-calc',label:'Sample 2',hintCost:1,q:'You look through a 10× eyepiece with the 40× objective. What is the total magnification? (just the number)',a:'400',h:'Total magnification = eyepiece × objective.',s:'10 × 40 = 400 → 400× total magnification',
+ selfCheck:{q:'Which is a good way to check 10 × 40?',opts:['10 + 40 = 50, so it should be just 50×','4 × 10 = 40, then add a zero: 400 ✓','40 ÷ 10 = 4, so it should be 4×','Only the objective counts, so 40×'],a:1,why:'Multiplying by 10 adds a zero: 40 × 10 = 400. And it makes sense: stronger lenses multiply, they don\'t just add.'}}),
+MC({id:'m3',skill:'inverted-image',label:'Sample 3',hintCost:2,q:'You put a slide with the letter “e” on the stage. Through the eyepiece it looks upside down and backwards. Why?',opts:['The lenses bend light so the rays cross, flipping the image','The slide was loaded upside down by the station\'s robot arm again','In zero gravity, images float and turn upside down','The mirror reflects the letter like a bathroom mirror'],a:0,h:'Think about what a curved lens does to light rays passing through it.',s:'Light rays bend through the objective lens and CROSS over each other, so the image comes out upside down and reversed. The eyepiece magnifies that flipped image. (Bonus: moving the slide left makes the image move right!)'}),
+STEPS({id:'m4',skill:'focusing-order',label:'Sample 4',hintCost:2,q:'Focus on a new sample. Choose each step in order.',h:'Start wide and blurry-safe, then get sharper and closer.',s:'1) Start with the lowest-power objective\n2) Focus with the coarse knob\n3) Sharpen with the fine knob\n4) Switch to higher power and use only the fine knob',steps:[
+MOVE('Step 1',['Click in the lowest-power (4×) objective','Click in the highest-power (40×) objective','Remove all objectives first','Any objective, it does not matter'],0,'4× objective','Low power shows the widest view, so the sample is easiest to find and the lens is far from the slide.','What do you do first?'),
+MOVE('Step 2',['Use the fine focus knob','Use the coarse focus knob','Close the diaphragm all the way','Switch to the 40× objective'],1,'coarse focus','The coarse knob makes big moves to bring the sample into view on low power.','What next?'),
+MOVE('Step 3',['Switch to 40× right away, then refocus with the coarse knob','Use the fine knob, then remove the slide and look again','Use the fine knob, then switch to 40× and fine-tune','Turn off the light, then refocus the sample from the start'],2,'sharp at high power','Sharpen with fine focus, then switch up. On high power, use ONLY the fine knob: the coarse knob can crash the lens into the slide.','Finish the job:')]})]},
+{id:'cells',emoji:'🌱',name:'Cell Compare',desc:'Plant vs animal cells, what each organelle does, a Venn sort, and levels of organization.',doneMsg:'Cells compared! 🌱🐾',
+strategy:`<p><b>Cell Compare Protocol</b></p>${CELLS}<ul>
+<li><b>Both:</b> cell membrane (controls what enters/leaves), nucleus (control center, holds DNA), cytoplasm, mitochondria (release energy from food).</li>
+<li><b>Plant only:</b> cell wall (stiff support), chloroplasts (photosynthesis: light → sugar), one LARGE central vacuole (stores water).</li>
+<li>Animal cells may have small vacuoles, but no cell wall and no chloroplasts.</li>
+<li><b>Levels of organization:</b> cell → tissue → organ → organ system → organism.</li>
+<li><b>Unicellular</b> = one cell does everything. <b>Multicellular</b> = many specialized cells working together.</li></ul>
+<p>🔍 <b>Check:</b> ask “What JOB does it do?” Then ask “Would a plant or an animal need that job?”</p>`,
+items:[
+MC({id:'k1',skill:'plant-only-structure',label:'Sample 5',hintCost:1,q:'A sample has a stiff outer layer outside its membrane. Which structure is found in plant cells but NOT in animal cells?',opts:['Cell wall','Cell membrane','Nucleus','Mitochondria'],a:0,h:'Which one gives support, so plants can stand up without bones?',s:'The cell wall is a stiff layer outside the membrane that only plant cells (and some others like fungi and bacteria) have. Animal cells have a membrane but no wall.'}),
+MC({id:'k2',skill:'chloroplast-function',label:'Sample 6',hintCost:1,q:'The sample has green chloroplasts. What do chloroplasts do?',opts:['Capture sunlight to make sugar (photosynthesis)','Release energy from sugar (cellular respiration)','Control the cell and store its DNA','Control what enters and leaves the cell'],a:0,h:'Green + sunlight = …',s:'Chloroplasts capture light energy to make sugar: photosynthesis. Mitochondria then release energy from that sugar.'}),
+MC({id:'k3',skill:'mitochondria-function',label:'Sample 7',hintCost:2,q:'An animal muscle sample is packed with mitochondria. What does that tell you about these cells?',opts:['They are plant cells','They use a lot of energy','They make food from light','They are not alive'],a:1,h:'What job do mitochondria do?',s:'Mitochondria release energy from food. Cells that work hard (like muscle cells) have many of them.'}),
+MC({id:'k4',skill:'vacuole-function',label:'Sample 8',hintCost:2,q:'A space-farm lettuce plant wilts when it isn\'t watered. Which plant-cell structure has lost water and shrunk?',opts:['Nucleus (control center)','Large central vacuole','Cell wall (stiff support)','Mitochondrion'],a:1,h:'Which structure stores water in a plant cell?',s:'The large central vacuole stores water. When it shrinks, the cells lose pressure and the plant droops.'}),
+STEPS({id:'k5',skill:'plant-animal-venn',label:'Sample 9 · Venn sort',hintCost:2,q:'Sort each structure into the Venn diagram: plant only, animal only, or both.',h:'Plant-only = wall, chloroplasts, large central vacuole. Most other parts are in both.',s:'Plant only: cell wall, chloroplast\nBoth: mitochondria, cell membrane, nucleus\n(Animal cells have no wall and no chloroplasts.)',steps:[
+MOVE('Cell wall',VENN,0,'plant only','Only plant cells (not animal cells) have a stiff cell wall.','Where does it go?'),
+MOVE('Mitochondria',VENN,2,'both','Plants AND animals need to release energy from sugar, so both have mitochondria.','Where does it go?'),
+MOVE('Chloroplast',VENN,0,'plant only','Only plant cells do photosynthesis.','Where does it go?'),
+MOVE('Cell membrane',VENN,2,'both','Every cell has a membrane controlling what goes in and out.','Where does it go?'),
+MOVE('Nucleus',VENN,2,'both','Plant and animal cells both keep DNA in a nucleus.','Where does it go?')]}),
+STEPS({id:'k6',skill:'levels-of-organization',label:'Sample 10',hintCost:3,q:'Build an organism from the smallest level to the largest.',h:'Cells group into tissues, tissues into organs…',s:'cell → tissue → organ → organ system → organism\nExample: muscle cell → muscle tissue → heart → circulatory system → astronaut',steps:[
+MOVE('? (smallest)',['Cell','Tissue','Organ','Organ system'],0,'cell','The cell is the basic unit of life.','What is the smallest level?'),
+MOVE('cell → ?',['Organ','Tissue','Organ system','Organism'],1,'tissue','A tissue is a group of similar cells doing the same job.','What comes next?'),
+MOVE('cell → tissue → ?',['Organ system','Organism','Organ','Cell'],2,'organ','An organ (like the heart) is made of different tissues working together.','What comes next?'),
+MOVE('cell → tissue → organ → ?',['Organism','Organ system','Tissue','Population of organisms'],1,'organ system','Organs work together in an organ system, which makes up the whole organism.','What comes next?')]}),
+MC({id:'k7',skill:'unicellular-multicellular',label:'Sample 11 · Solo',hintCost:3,q:'Pond sample P-2 is a single cell that finds food, moves, and reproduces all on its own. What is it?',opts:['A tissue','An organ','Unicellular','Multicellular'],a:2,h:'“Uni-” means one.',s:'One cell doing every job = a unicellular organism (like an amoeba or a bacterium).',
+ selfCheck:{q:'How could you check your answer?',opts:['Count the cells: one cell = unicellular','See if it is green under the microscope','Check if it is bigger than 1 millimeter','See if it has a nucleus or not'],a:0,why:'Unicellular vs multicellular is about the NUMBER of cells, not color, size, or a nucleus.'}})]},
+{id:'stretch',emoji:'🚀',name:'Challenge: Alien Sample',desc:'TAG stretch: surface area vs volume, why cells are tiny, and is the ice-moon sample really a cell?',doneMsg:'Challenge complete, Senior Scientist! 🚀',
+strategy:`<p><b>Challenge Protocol: Think like an astrobiologist 👽</b></p><ul>
+<li><b>Surface area (SA)</b> of a cube = 6 × side × side. <b>Volume (V)</b> = side × side × side.</li>
+<li>Food and oxygen enter a cell through its <b>surface</b> (membrane), but the whole <b>volume</b> needs them.</li>
+<li>As a cell gets bigger, volume grows faster than surface area, so <b>SA ÷ V gets smaller</b>. That's why most cells are tiny (often about 0.01–0.1 mm) and need a microscope to see.</li>
+<li><b>Cell theory:</b> (1) all living things are made of cells, (2) the cell is the basic unit of structure and function, (3) all cells come from existing cells.</li></ul>`,
+items:[
+NUM({id:'x1',skill:'surface-area-volume',label:'Challenge 1',hintCost:2,q:'A cube-shaped cell 2 units on a side has SA = 24 and V = 8, so SA ÷ V = 3. Now a cube-shaped cell 4 units on a side: what is SA ÷ V?',a:'1.5',ph:'e.g. 2.5',h:'SA = 6 × 4 × 4. V = 4 × 4 × 4. Then divide SA by V.',s:'SA = 6 × 16 = 96\nV = 64\n96 ÷ 64 = 1.5\nThe bigger cell has HALF as much surface per unit of volume.',
+ selfCheck:{q:'Sanity check: does 1.5 make sense next to the small cube\'s 3?',opts:['No, bigger cells should always have a bigger ratio','Yes, bigger cubes have less surface per volume','No, the ratio is always 6 for any cube','Yes, simply because 4 is bigger than 2'],a:1,why:'Doubling the side multiplies SA by 4 but V by 8, so the ratio halves: 3 → 1.5 ✓.'}}),
+MC({id:'x2',skill:'why-cells-small',label:'Challenge 2',hintCost:2,q:'Use your answer. Why are most cells so small?',opts:['Small cells are lighter, so they float more easily in the body','Small cells need less DNA, so the nucleus controls them easily','More surface for their volume, so materials move in and out fast','Small cells are easier for scientists to see under a light microscope'],a:2,h:'Where do food and oxygen get into the cell, and who needs them?',s:'Materials enter through the surface. Small cells have a high SA ÷ V, so every part of the cell gets supplies fast enough.'}),
+MC({id:'x3',skill:'cell-theory-reasoning',label:'Challenge 3 · Ice-moon sample',hintCost:3,q:'Sample Z-9 from an ice moon grows, is wrapped in a membrane, and new Z-9s form only when an existing one splits in two. It has NO nucleus. Could Z-9 be a cell?',opts:['No: every true cell must have a nucleus, so Z-9 cannot be one','Yes: it has a membrane and comes from existing cells, like bacteria','No: life from another world can never follow Earth\'s cell theory rules','Yes: anything that grows bigger must be a cell, even crystals'],a:1,h:'Do all Earth cells have a nucleus? Think about bacteria. Then check each part of cell theory.',s:'Bacteria are cells with no nucleus, so “no nucleus” doesn\'t rule it out. Z-9 has a membrane (a boundary) and comes only from existing Z-9s, matching cell theory. (Crystals grow too, but they don\'t come from dividing cells.)'})]}],
+reflectChips:['Following the protocol card','Asking “what job does it do?”','The Venn sort','Checking my own answer','SA ÷ V thinking','Cell theory'],
+reflectQ:'Which strategy helped you most today, and why?',askTutorName:true,winMsg:'Mission complete! Station Kepler salutes you, Scientist! 🛰️'});
+</script></body></html>
